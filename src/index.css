@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply font-sans text-ink-800 antialiased;
+    background-color: #f5f3f0;
+  }
+  h1, h2, h3, h4 {
+    @apply font-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink-900 px-7 py-3.5 text-sm font-semibold text-white shadow-soft transition-all duration-300 hover:bg-ink-800 hover:shadow-card hover:-translate-y-0.5 active:translate-y-0;
+  }
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-champagne-400 to-champagne-500 px-7 py-3.5 text-sm font-semibold text-ink-900 shadow-soft transition-all duration-300 hover:from-champagne-300 hover:to-champagne-400 hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink-200 bg-white/70 px-6 py-3 text-sm font-medium text-ink-700 backdrop-blur transition-all duration-300 hover:border-ink-300 hover:bg-white;
+  }
+  .card {
+    @apply rounded-2xl border border-ink-100 bg-white shadow-soft;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer select-none;
+  }
+  .input-field {
+    @apply w-full rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm text-ink-800 placeholder:text-ink-400 transition-colors focus:border-ink-400 focus:outline-none focus:ring-2 focus:ring-ink-200;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .bg-grain {
+    background-image: radial-gradient(circle at 1px 1px, rgba(26,29,38,0.03) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+  .shimmer-bg {
+    background: linear-gradient(90deg, #f0eee9 0%, #f8f6f1 50%, #f0eee9 100%);
+    background-size: 1000px 100%;
+  }
+}
