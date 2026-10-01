@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { BookOpen, Crown, Sparkles, LogOut, User as UserIcon, ChevronDown } from 'lucide-react';
+import { BookOpen, Crown, Sparkles, LogOut, User as UserIcon, ChevronDown, Users, Heart } from 'lucide-react';
 import { LogoMark } from './Logo';
 import { useAuth } from '../lib/auth';
+import NotificationBell from './NotificationBell';
 import type { AppView } from '../types';
 
 interface NavbarProps {
@@ -13,7 +14,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ view, onNavigate, onStartPrayer, isPremium, onShowAuth }: NavbarProps) {
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -27,7 +28,15 @@ export default function Navbar({ view, onNavigate, onStartPrayer, isPremium, onS
     return () => document.removeEventListener('mousedown', handler);
   }, [menuOpen]);
 
-  const initials = user?.email
+  const displayName = profile?.username
+    ? `@${profile.username}`
+    : user?.email
+    ? user.email.split('@')[0]
+    : '';
+
+  const initials = profile?.username
+    ? profile.username.charAt(0).toUpperCase()
+    : user?.email
     ? user.email.charAt(0).toUpperCase()
     : '?';
 
@@ -48,7 +57,7 @@ export default function Navbar({ view, onNavigate, onStartPrayer, isPremium, onS
           )}
         </button>
 
-        <div className="hidden items-center gap-8 sm:flex">
+        <div className="hidden items-center gap-6 sm:flex">
           <button
             onClick={() => onNavigate('landing')}
             className={`text-sm font-medium transition-colors ${
@@ -63,21 +72,58 @@ export default function Navbar({ view, onNavigate, onStartPrayer, isPremium, onS
               view === 'journal' ? 'text-ink-900' : 'text-ink-500 hover:text-ink-800'
             }`}
           >
-            Prayer Journal
+            Journal
+          </button>
+          <button
+            onClick={() => onNavigate('community')}
+            className={`text-sm font-medium transition-colors ${
+              view === 'community' ? 'text-ink-900' : 'text-ink-500 hover:text-ink-800'
+            }`}
+          >
+            Community
+          </button>
+          <button
+            onClick={() => onNavigate('bible')}
+            className={`text-sm font-medium transition-colors ${
+              view === 'bible' ? 'text-ink-900' : 'text-ink-500 hover:text-ink-800'
+            }`}
+          >
+            Bible
           </button>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => onNavigate('journal')}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-500 transition-colors hover:bg-ink-50 hover:text-ink-800 sm:hidden"
-            aria-label="Journal"
-          >
-            <BookOpen className="h-5 w-5" />
-          </button>
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Mobile nav icons */}
+          <div className="flex items-center gap-1 sm:hidden">
+            <button
+              onClick={() => onNavigate('journal')}
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-500 transition-colors hover:bg-ink-50 hover:text-ink-800"
+              aria-label="Journal"
+            >
+              <BookOpen className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => onNavigate('community')}
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-500 transition-colors hover:bg-ink-50 hover:text-ink-800"
+              aria-label="Community"
+            >
+              <Users className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => onNavigate('bible')}
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-500 transition-colors hover:bg-ink-50 hover:text-ink-800"
+              aria-label="Bible"
+            >
+              <Heart className="h-5 w-5" />
+            </button>
+          </div>
+
+          <NotificationBell onShowAuth={() => onShowAuth('signin')} />
+
           <button onClick={onStartPrayer} className="btn-gold !px-5 !py-2.5 text-xs sm:text-sm">
             <Sparkles className="h-4 w-4" />
-            New Prayer
+            <span className="hidden sm:inline">New Prayer</span>
+            <span className="sm:hidden">Pray</span>
           </button>
 
           {user ? (
@@ -96,7 +142,10 @@ export default function Navbar({ view, onNavigate, onStartPrayer, isPremium, onS
                 <div className="absolute right-0 top-full mt-2 w-60 overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-card animate-scale-in">
                   <div className="border-b border-ink-100 px-4 py-3">
                     <p className="text-xs font-medium text-ink-400">Signed in as</p>
-                    <p className="truncate text-sm font-semibold text-ink-900">{user.email}</p>
+                    <p className="truncate text-sm font-semibold text-ink-900">{displayName || user.email}</p>
+                    {profile?.username && (
+                      <p className="truncate text-xs text-ink-400">{user.email}</p>
+                    )}
                   </div>
                   <div className="p-2">
                     <div className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-ink-500">

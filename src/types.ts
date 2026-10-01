@@ -37,7 +37,7 @@ export interface CategoryOption {
   icon: string;
 }
 
-export type AppView = 'landing' | 'journal' | 'prayer';
+export type AppView = 'landing' | 'journal' | 'prayer' | 'community' | 'bible';
 
 export type IntakeStep = 1 | 2 | 3 | 4;
 
@@ -49,4 +49,34 @@ export interface OnboardingChoices {
   focusArea: string;
   voice: VoiceId;
   duration: ReflectionDuration;
+}
+
+export interface UserProfile {
+  id: string;
+  username: string | null;
+  subscription_tier: string;
+}
+
+export interface CommunityPost {
+  id: string;
+  user_id: string;
+  title: string;
+  body: string;
+  tags: string[];
+  prayer_count: number;
+  created_at: string;
+  author_username: string | null;
+  has_prayed: boolean;
+}
+
+export interface AppNotification {
+  id: string;
+  recipient_id: string;
+  sender_id: string | null;
+  actor_username: string | null;
+  post_id: string | null;
+  post_title: string | null;
+  type: string;
+  is_read: boolean;
+  created_at: string;
 }

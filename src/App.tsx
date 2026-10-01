@@ -4,6 +4,8 @@ import Landing from './components/Landing';
 import IntakeFlow from './components/IntakeFlow';
 import PrayerOutput from './components/PrayerOutput';
 import JournalView from './components/JournalView';
+import CommunityView from './components/CommunityView';
+import BibleReader from './components/BibleReader';
 import UpgradeModal from './components/UpgradeModal';
 import AuthModal from './components/AuthModal';
 import { Toast, useToast } from './components/Toast';
@@ -118,6 +120,19 @@ function AppContent() {
             setPrayer(p);
             setView('prayer');
           }}
+        />
+      )}
+
+      {view === 'community' && (
+        <CommunityView
+          onShowUpgrade={() => setUpgradeOpen(true)}
+          onShowAuth={() => showAuth('signup')}
+        />
+      )}
+
+      {view === 'bible' && (
+        <BibleReader
+          onShowUpgrade={() => setUpgradeOpen(true)}
         />
       )}
 

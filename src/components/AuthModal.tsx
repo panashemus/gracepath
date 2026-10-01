@@ -1,5 +1,5 @@
 import { useState, useEffect, type FormEvent } from 'react';
-import { X, Mail, Lock, Sparkles, Loader2, AlertCircle } from 'lucide-react';
+import { X, Mail, Lock, Sparkles, Loader2, AlertCircle, AtSign } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
 
@@ -22,8 +22,9 @@ export default function AuthModal({
   const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string; username?: string }>({});
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -33,13 +34,14 @@ export default function AuthModal({
       setFieldErrors({});
       setEmail('');
       setPassword('');
+      setUsername('');
     }
   }, [open, initialMode]);
 
   if (!open) return null;
 
   const validate = (): boolean => {
-    const errors: { email?: string; password?: string } = {};
+    const errors: { email?: string; password?: string; username?: string } = {};
     if (!email) {
       errors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -49,6 +51,13 @@ export default function AuthModal({
       errors.password = 'Password is required';
     } else if (password.length < 6) {
       errors.password = 'Password must be at least 6 characters';
+    }
+    if (mode === 'signup' && username) {
+      if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+        errors.username = 'Only letters, numbers, and underscores';
+      } else if (username.length < 3) {
+        errors.username = 'At least 3 characters';
+      }
     }
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -62,7 +71,7 @@ export default function AuthModal({
     setSubmitting(true);
     const result = mode === 'signin'
       ? await signIn(email, password)
-      : await signUp(email, password);
+      : await signUp(email, password, username);
     setSubmitting(false);
 
     if (result.error) {
@@ -111,6 +120,32 @@ export default function AuthModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {mode === 'signup' && (
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-ink-700">Username <span className="text-ink-400">(optional)</span></label>
+              <div className="relative">
+                <AtSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    if (fieldErrors.username) setFieldErrors((p) => ({ ...p, username: undefined }));
+                  }}
+                  placeholder="your_handle"
+                  className={`input-field !pl-10 ${fieldErrors.username ? 'border-red-300 focus:border-red-400 focus:ring-red-200' : ''}`}
+                  disabled={submitting}
+                  autoComplete="username"
+                />
+              </div>
+              {fieldErrors.username ? (
+                <p className="mt-1 text-xs text-red-500">{fieldErrors.username}</p>
+              ) : (
+                <p className="mt-1 text-xs text-ink-400">Letters, numbers, underscores. Used in the community.</p>
+              )}
+            </div>
+          )}
+
           <div>
             <label className="mb-1.5 block text-sm font-medium text-ink-700">Email</label>
             <div className="relative">

@@ -1,9 +1,12 @@
 const COUNT_KEY = 'gracepath_prayers_generated';
 const PREMIUM_KEY = 'gracepath_is_premium';
+const TIER_KEY = 'gracepath_subscription_tier';
 
 export const PAYPAL_MONTHLY_URL = 'https://www.paypal.com/ncp/payment/A6F3UCVR27NM8';
 export const PAYPAL_ANNUAL_URL = 'https://www.paypal.com/ncp/payment/ALL7HKAS6T85G';
 export const PAYPAL_LIFETIME_URL = 'https://www.paypal.com/ncp/payment/Y8PV6Q36JP2JA';
+
+export type SubscriptionTier = 'free' | 'monthly' | 'annual' | 'lifetime';
 
 export interface PricingTier {
   id: 'monthly' | 'annual' | 'lifetime';
@@ -44,7 +47,7 @@ export const PRICING_TIERS: PricingTier[] = [
       'Everything in Daily Walk VIP',
       'Save 50% vs. monthly billing',
       'Voice reflections (Warm Male & Gentle Female)',
-      'Prayer journal & answered prayer tracking',
+      'Prayer journal and answered prayer tracking',
       'Priority prayer generation',
       'All future features included',
     ],
@@ -93,6 +96,24 @@ export function setIsPremium(value: boolean): void {
   localStorage.setItem(PREMIUM_KEY, String(value));
 }
 
+export function getSubscriptionTier(): SubscriptionTier {
+  try {
+    const tier = localStorage.getItem(TIER_KEY) as SubscriptionTier | null;
+    return tier ?? 'free';
+  } catch {
+    return 'free';
+  }
+}
+
+export function setSubscriptionTier(tier: SubscriptionTier): void {
+  localStorage.setItem(TIER_KEY, tier);
+  setIsPremium(tier !== 'free');
+}
+
 export function canGenerateFreePrayer(): boolean {
   return getIsPremium() || getPrayerCount() < 1;
+}
+
+export function hasProAccess(): boolean {
+  return getSubscriptionTier() !== 'free';
 }
