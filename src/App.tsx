@@ -5,15 +5,21 @@ import IntakeFlow from './components/IntakeFlow';
 import PrayerOutput from './components/PrayerOutput';
 import JournalView from './components/JournalView';
 import UpgradeModal from './components/UpgradeModal';
+import AuthModal from './components/AuthModal';
 import { Toast, useToast } from './components/Toast';
+import { AuthProvider, useAuth } from './lib/auth';
 import { incrementPrayerCount, getIsPremium } from './lib/paywall';
 import type { AppView, PrayerResult, VoiceId } from './types';
 
-function App() {
+function AppContent() {
+  const { user } = useAuth();
   const [view, setView] = useState<AppView>('landing');
   const [intakeOpen, setIntakeOpen] = useState(false);
   const [prayer, setPrayer] = useState<PrayerResult | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
+  const [authPrompt, setAuthPrompt] = useState<{ title?: string; subtitle?: string } | undefined>(undefined);
   const [isPremium, setIsPremiumState] = useState(getIsPremium());
   const [voice, setVoice] = useState<VoiceId>('onyx');
   const { toast, showToast } = useToast();
@@ -44,6 +50,20 @@ function App() {
     setIsPremiumState(true);
   };
 
+  const showAuth = (mode: 'signin' | 'signup', prompt?: { title?: string; subtitle?: string }) => {
+    setAuthMode(mode);
+    setAuthPrompt(prompt);
+    setAuthOpen(true);
+  };
+
+  const requireAuth = (action: () => void, promptTitle?: string, promptSubtitle?: string) => {
+    if (user) {
+      action();
+    } else {
+      showAuth('signup', { title: promptTitle, subtitle: promptSubtitle });
+    }
+  };
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [view]);
@@ -55,6 +75,7 @@ function App() {
         onNavigate={handleNavigate}
         onStartPrayer={startPrayer}
         isPremium={isPremium}
+        onShowAuth={(mode) => showAuth(mode)}
       />
 
       {view === 'landing' && (
@@ -69,11 +90,18 @@ function App() {
         <PrayerOutput
           prayer={prayer}
           onBack={() => handleNavigate('landing')}
-          onGoToJournal={() => handleNavigate('journal')}
+          onGoToJournal={() => {
+            requireAuth(
+              () => handleNavigate('journal'),
+              'Sign up to view your prayer journal',
+              'Create a free account to save prayers, track answered prayers, and revisit your spiritual journey anytime.'
+            );
+          }}
           showToast={showToast}
           isPremium={isPremium}
           voice={voice}
           onVoiceChange={setVoice}
+          onRequireAuth={(action, title, subtitle) => requireAuth(action, title, subtitle)}
         />
       )}
 
@@ -108,8 +136,24 @@ function App() {
         onPremiumActivated={handlePremiumActivated}
       />
 
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        initialMode={authMode}
+        title={authPrompt?.title}
+        subtitle={authPrompt?.subtitle}
+      />
+
       <Toast toast={toast} />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

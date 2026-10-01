@@ -18,9 +18,10 @@ interface PrayerOutputProps {
   isPremium: boolean;
   voice: VoiceId;
   onVoiceChange: (voice: VoiceId) => void;
+  onRequireAuth?: (action: () => void, title?: string, subtitle?: string) => void;
 }
 
-export default function PrayerOutput({ prayer, onBack, onGoToJournal, showToast, isPremium, voice, onVoiceChange }: PrayerOutputProps) {
+export default function PrayerOutput({ prayer, onBack, onGoToJournal, showToast, isPremium, voice, onVoiceChange, onRequireAuth }: PrayerOutputProps) {
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(isInJournal(prayer.id));
   const [downloading, setDownloading] = useState(false);
@@ -44,10 +45,20 @@ export default function PrayerOutput({ prayer, onBack, onGoToJournal, showToast,
   };
 
   const handleSave = () => {
-    if (!saved) {
+    if (saved) return;
+    const doSave = () => {
       saveToJournal(prayer);
       setSaved(true);
       showToast('Prayer saved to your journal');
+    };
+    if (onRequireAuth) {
+      onRequireAuth(
+        doSave,
+        'Sign up to save prayers',
+        'Create a free account to save this prayer to your journal and track answered prayers over time.'
+      );
+    } else {
+      doSave();
     }
   };
 
