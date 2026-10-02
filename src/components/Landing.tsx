@@ -1,10 +1,12 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import {
   Sparkles, ArrowRight, Heart, BookOpen, Headphones, PenLine,
   Quote, Check, Star, Users, Clock, ShieldCheck, Download,
-  Play, Pause, Loader2, Calendar, Infinity as InfinityIcon,
+  Play, Pause, Loader2, Calendar, Infinity as InfinityIcon, AlertCircle,
 } from 'lucide-react';
-import { PRICING_TIERS } from '../lib/paywall';
+import { PRICING_TIERS, PAYPAL_CLIENT_ID } from '../lib/paywall';
+import { useAuth } from '../lib/auth';
+import { supabase } from '../lib/supabase';
 import { LogoMark } from './Logo';
 
 interface LandingProps {
@@ -45,10 +47,35 @@ const TIER_ICONS: Record<string, typeof Clock> = {
 };
 
 export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: LandingProps) {
+  const { user, refreshProfile } = useAuth();
   const pricingRef = useRef<HTMLElement>(null);
   const [samplePlaying, setSamplePlaying] = useState(false);
   const [sampleLoading, setSampleLoading] = useState(false);
   const sampleAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [checkoutTier, setCheckoutTier] = useState<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const paypalLoadedRef = useRef(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Load PayPal SDK once on mount
+  useEffect(() => {
+    if (!PAYPAL_CLIENT_ID || paypalLoadedRef.current) return;
+    paypalLoadedRef.current = true;
+    const script = document.createElement('script');
+    script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=USD&intent=capture`;
+    script.async = true;
+    document.head.appendChild(script);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+  }, []);
 
   const scrollToPricing = () => {
     pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -102,6 +129,90 @@ export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: La
       // MP3 failed — trigger fallback via onerror
     }
     setSampleLoading(false);
+  };
+
+  const handleLandingCheckout = async (
+    tierId: string,
+    currentUser: typeof user,
+    refresh: typeof refreshProfile,
+    setTier: (v: string | null) => void,
+    setError: (v: string | null) => void,
+    setVerify: (v: boolean) => void,
+    onUpgrade: () => void,
+  ) => {
+    if (!currentUser) {
+      onUpgrade();
+      return;
+    }
+
+    setTier(tierId);
+    setError(null);
+
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/paypal-create-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ tier: tierId, userId: currentUser.id }),
+      });
+
+      if (!response.ok) throw new Error('Failed to create PayPal order');
+
+      const { orderID } = await response.json();
+
+      // @ts-expect-error - PayPal SDK global
+      const paypal = window.paypal;
+      if (!paypal) throw new Error('PayPal SDK not loaded');
+
+      const containerId = `paypal-landing-${tierId}`;
+      const container = document.getElementById(containerId);
+      if (container) container.innerHTML = '';
+
+      await new Promise<void>((resolve, reject) => {
+        paypal.Buttons({
+          createOrder: () => Promise.resolve(orderID),
+          onApprove: async (_data: unknown, actions: { order: { capture: () => Promise<unknown> } }) => {
+            await actions.order.capture();
+            resolve();
+          },
+          onError: (err: Error) => reject(err),
+          onCancel: () => reject(new Error('cancelled')),
+        }).render(`#${containerId}`);
+      });
+
+      setVerify(true);
+      let attempts = 0;
+      pollRef.current = setInterval(async () => {
+        attempts++;
+        if (attempts > 60) {
+          if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+          setVerify(false);
+          setTier(null);
+          setError('Verification timed out. If you completed payment, please contact support.');
+          return;
+        }
+        const { data } = await supabase
+          .from('profiles')
+          .select('is_subscribed, subscription_tier')
+          .eq('id', currentUser.id)
+          .maybeSingle();
+        if (data?.is_subscribed) {
+          if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+          await refresh();
+          setVerify(false);
+          setTier(null);
+        }
+      }, 2000);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Checkout failed';
+      if (msg !== 'cancelled') {
+        setError(msg);
+      }
+      setTier(null);
+    }
   };
 
   return (
@@ -361,17 +472,45 @@ export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: La
                     ))}
                   </ul>
                   <button
-                    onClick={() => window.open(tier.paypalUrl, '_blank', 'noopener,noreferrer')}
-                    className={`mt-8 w-full ${tier.highlight ? 'btn-gold' : 'btn-primary'}`}
+                    onClick={() => handleLandingCheckout(tier.id, user, refreshProfile, setCheckoutTier, setCheckoutError, setVerifying, onShowUpgrade)}
+                    disabled={checkoutTier === tier.id}
+                    className={`mt-8 w-full ${tier.highlight ? 'btn-gold' : 'btn-primary'} disabled:opacity-50`}
                   >
-                    {tier.id === 'lifetime' ? 'Get Lifetime Access' : tier.id === 'annual' ? 'Subscribe for $59.99/year' : 'Subscribe — $9.99/mo'}
+                    {checkoutTier === tier.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      tier.id === 'lifetime' ? 'Get Lifetime Access' : tier.id === 'annual' ? 'Subscribe for $59.99/year' : 'Subscribe — $9.99/mo'
+                    )}
                   </button>
+                  <div id={`paypal-landing-${tier.id}`} className="mt-2" />
                 </div>
               );
             })}
           </div>
 
-          {/* Trust badges */}
+          {checkoutError && (
+            <div className="mt-6 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 animate-fade-in">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{checkoutError}</span>
+            </div>
+          )}
+
+          {/* Verifying overlay */}
+          {verifying && (
+            <div className="fixed inset-0 z-[55] flex items-center justify-center bg-ink-950/40 backdrop-blur-sm animate-fade-in">
+              <div className="rounded-3xl bg-white p-10 text-center shadow-2xl animate-scale-in">
+                <div className="relative mx-auto mb-6">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-champagne-50">
+                    <Loader2 className="h-10 w-10 animate-spin text-champagne-500" />
+                  </div>
+                </div>
+                <h3 className="font-serif text-xl font-semibold text-ink-900">Verifying secure payment...</h3>
+                <p className="mt-3 max-w-sm text-sm text-ink-500">
+                  Confirming your PayPal payment with our secure backend.
+                </p>
+              </div>
+            </div>
+          )}
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-8">
             {[
               'Instant Access to Daily Scripture & Audio',

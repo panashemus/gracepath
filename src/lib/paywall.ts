@@ -2,6 +2,14 @@ const COUNT_KEY = 'gracepath_prayers_generated';
 const PREMIUM_KEY = 'gracepath_is_premium';
 const TIER_KEY = 'gracepath_subscription_tier';
 
+export const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID ?? '';
+
+export const TIER_AMOUNTS: Record<string, string> = {
+  monthly: '9.99',
+  annual: '59.99',
+  lifetime: '200.00',
+};
+
 export const PAYPAL_MONTHLY_URL = 'https://www.paypal.com/ncp/payment/A6F3UCVR27NM8';
 export const PAYPAL_ANNUAL_URL = 'https://www.paypal.com/ncp/payment/ALL7HKAS6T85G';
 export const PAYPAL_LIFETIME_URL = 'https://www.paypal.com/ncp/payment/Y8PV6Q36JP2JA';
