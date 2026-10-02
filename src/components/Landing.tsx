@@ -105,7 +105,7 @@ export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: La
   };
 
   return (
-    <div className="bg-grain">
+    <div className="bg-grain overflow-x-hidden pb-20 sm:pb-0">
       {/* Hero */}
       <section className="relative overflow-hidden px-4 pt-32 pb-20 sm:px-6 sm:pt-40 sm:pb-28">
         <div className="pointer-events-none absolute inset-0 -z-10">
@@ -431,7 +431,7 @@ export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: La
       </footer>
 
       {/* Sticky mobile CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-ink-100 bg-white/95 px-4 py-3 shadow-card backdrop-blur-lg sm:hidden">
+      <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-ink-100 bg-white/95 px-4 py-3 shadow-card backdrop-blur-lg safe-area-bottom sm:hidden">
         <button onClick={onStartPrayer} className="btn-gold w-full text-sm">
           <Sparkles className="h-4 w-4" />
           Receive Your Prayer

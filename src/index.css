@@ -50,4 +50,18 @@
     background: linear-gradient(90deg, #f0eee9 0%, #f8f6f1 50%, #f0eee9 100%);
     background-size: 1000px 100%;
   }
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.25s ease-out;
 }

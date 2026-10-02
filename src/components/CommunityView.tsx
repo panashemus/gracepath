@@ -65,7 +65,7 @@ export default function CommunityView({ onShowUpgrade, onShowAuth }: CommunityVi
       tags: p.tags ?? [],
       prayer_count: p.prayers_count ?? 0,
       created_at: p.created_at,
-      author_username: ((p.profiles as unknown as { username?: string } | { username?: string }[]) | undefined)?.username ?? null,
+      author_username: (p.profiles as unknown as Record<string, unknown>)?.username as string | null ?? null,
       has_prayed: prayerMap[p.id] ?? false,
     }));
 
