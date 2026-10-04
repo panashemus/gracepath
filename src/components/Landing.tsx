@@ -159,7 +159,10 @@ export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: La
         body: JSON.stringify({ tier: tierId, userId: currentUser.id }),
       });
 
-      if (!response.ok) throw new Error('Failed to create PayPal order');
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({ error: 'Failed to create PayPal order' }));
+        throw new Error(errData.error || 'Failed to create PayPal order');
+      }
 
       const { orderID } = await response.json();
 
