@@ -21,7 +21,7 @@ export function loadPaypalSdk(): Promise<PayPalSDK> {
    if(!settled){settled=true;pending=null;reject(new Error('PayPal is taking too long to load. Please try again.'))}
   },15000);
   const fail=()=>{if(settled)return;settled=true;clearTimeout(timeout);pending=null;reject(new Error('PayPal could not load. Check your connection or browser protection settings.'))};
-  const success=()=>{if(settled)return;settled=true;clearTimeout(timeout);if(window.paypal)resolve(window.paypal);else fail()};
+  const success=()=>{if(settled)return;if(!window.paypal){fail();return;}settled=true;clearTimeout(timeout);resolve(window.paypal)};
   script.addEventListener('load',success,{once:true});
   script.addEventListener('error',fail,{once:true});
   if(!existing){
