@@ -26,7 +26,7 @@ function loadHandler(name, options) {
       env: { get: (key) => options.env?.[key] ?? safeEnv[key] ?? null },
       serve: (fn) => { handler = fn; },
     },
-    createClient: options.createClient ?? (() => ({ auth: { getUser: async () => ({ data: { user: { id: userId } }, error: null }) } })),
+    createClient: options.createClient ?? (() => ({ auth: { getUser: async (token) => ({ data: { user: token ? { id: userId } : null }, error: token ? null : { message: 'invalid token' } }) } })),
     fetch: options.fetch ?? (() => { throw new Error('Unexpected external network request'); }),
     Request, Response, crypto, btoa, console,
   };
