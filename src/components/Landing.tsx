@@ -468,7 +468,7 @@ export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: La
                     {checkoutTier === tier.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      tier.id === 'lifetime' ? 'Get Lifetime Access' : tier.id === 'annual' ? 'Subscribe for $59.99/year' : 'Subscribe — $9.99/mo'
+                      tier.id === 'lifetime' ? 'Get Lifetime Access' : tier.id === 'annual' ? 'Get 365 Days — $59.99' : 'Get 30 Days — $9.99'
                     )}
                   </button>
                   <div id={`paypal-landing-${tier.id}`} className="mt-2" />
@@ -503,7 +503,7 @@ export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: La
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-8">
             {[
               'Instant Access to Daily Scripture & Audio',
-              'Cancel Anytime with 1 Click',
+              'One-time payment — no automatic renewal',
               'Secure 256-Bit Encrypted PayPal Checkout',
             ].map((badge) => (
               <div key={badge} className="flex items-center gap-2 text-sm text-ink-500">
