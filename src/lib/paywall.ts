@@ -11,9 +11,6 @@ export const TIER_AMOUNTS: Record<string, string> = {
   lifetime: '200.00',
 };
 
-export const PAYPAL_MONTHLY_URL = 'https://www.paypal.com/ncp/payment/A6F3UCVR27NM8';
-export const PAYPAL_ANNUAL_URL = 'https://www.paypal.com/ncp/payment/ALL7HKAS6T85G';
-export const PAYPAL_LIFETIME_URL = 'https://www.paypal.com/ncp/payment/Y8PV6Q36JP2JA';
 
 export type SubscriptionTier = 'free' | 'monthly' | 'annual' | 'lifetime';
 
@@ -23,7 +20,6 @@ export interface PricingTier {
   price: number;
   period: string;
   badge?: string;
-  paypalUrl: string;
   features: string[];
   highlight?: boolean;
 }
@@ -34,7 +30,6 @@ export const PRICING_TIERS: PricingTier[] = [
     label: '30-Day Grace',
     price: 9.99,
     period: 'for 30 days',
-    paypalUrl: PAYPAL_MONTHLY_URL,
     features: [
       'Unlimited personalized prayers',
       'All Bible translations (NIV, KJV, ESV, NLT)',
@@ -51,7 +46,6 @@ export const PRICING_TIERS: PricingTier[] = [
     period: 'for 365 days',
     badge: 'SAVE 50% — BEST VALUE',
     highlight: true,
-    paypalUrl: PAYPAL_ANNUAL_URL,
     features: [
       'Everything in 30-Day Grace',
       'Save 50% compared with twelve 30-day passes',
@@ -67,7 +61,6 @@ export const PRICING_TIERS: PricingTier[] = [
     price: 200,
     period: 'one-time',
     badge: 'PAY ONCE, OWN FOREVER',
-    paypalUrl: PAYPAL_LIFETIME_URL,
     features: [
       'Everything in Year of Grace',
       'One-time payment — no subscription',
