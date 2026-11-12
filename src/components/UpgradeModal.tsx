@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Check, Sparkles, Clock, CreditCard, ShieldCheck, Calendar, Infinity as InfinityIcon, Loader2, AlertCircle } from 'lucide-react';
-import { PRICING_TIERS, PAYPAL_CLIENT_ID, setSubscriptionTier, type PricingTier } from '../lib/paywall';
+import { PRICING_TIERS, setSubscriptionTier, type PricingTier } from '../lib/paywall';
+import { loadPaypalSdk } from '../lib/paypalClient';
 import { useAuth } from '../lib/auth';
 import { supabase } from '../lib/supabase';
 
@@ -20,11 +21,10 @@ const TIER_ICONS: Record<string, typeof Clock> = {
 type CheckoutState = 'idle' | 'creating' | 'verifying' | 'success' | 'error';
 
 export default function UpgradeModal({ open, onClose, showToast, onPremiumActivated }: UpgradeModalProps) {
-  const { user, refreshProfile } = useAuth();
+  const { user, session, refreshProfile } = useAuth();
   const [selectedTier, setSelectedTier] = useState<string>('annual');
   const [checkoutState, setCheckoutState] = useState<CheckoutState>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const paypalLoadedRef = useRef(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const tier = PRICING_TIERS.find((t) => t.id === selectedTier) ?? PRICING_TIERS[0];
@@ -39,21 +39,6 @@ export default function UpgradeModal({ open, onClose, showToast, onPremiumActiva
         clearInterval(pollRef.current);
         pollRef.current = null;
       }
-    };
-  }, [open]);
-
-  // Load PayPal SDK
-  useEffect(() => {
-    if (!open || !PAYPAL_CLIENT_ID || paypalLoadedRef.current) return;
-    paypalLoadedRef.current = true;
-
-    const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=USD&intent=capture`;
-    script.async = true;
-    document.head.appendChild(script);
-
-    return () => {
-      // Don't remove — PayPal SDK can't be safely reloaded
     };
   }, [open]);
 
@@ -107,14 +92,16 @@ export default function UpgradeModal({ open, onClose, showToast, onPremiumActiva
     setErrorMsg(null);
 
     try {
+      const paypal = await loadPaypalSdk();
+      if (!session?.access_token) throw new Error('Please sign in before checkout.');
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const response = await fetch(`${supabaseUrl}/functions/v1/paypal-create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ tier: tier.id, userId: user.id }),
+        body: JSON.stringify({ tier: tier.id }),
       });
 
       if (!response.ok) {
@@ -123,12 +110,6 @@ export default function UpgradeModal({ open, onClose, showToast, onPremiumActiva
       }
 
       const { orderID } = await response.json();
-
-      // @ts-expect-error - PayPal SDK global
-      const paypal = window.paypal;
-      if (!paypal) {
-        throw new Error('PayPal SDK not loaded. Please refresh and try again.');
-      }
 
       // Clean up any previous button render
       const container = document.getElementById('paypal-button-container');
