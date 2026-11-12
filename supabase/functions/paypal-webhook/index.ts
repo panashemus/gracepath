@@ -27,6 +27,7 @@ async function token(){
 }
 Deno.serve(async(req:Request)=>{
   if(req.method!=='POST')return json(405,{error:'Method not allowed'});
+  if(apiBase!=='https://api-m.sandbox.paypal.com')return json(503,{error:'Sandbox verification only; live PayPal is disabled'});
   if(!clientId||!secret||!webhookId||!url||!serviceKey)return json(503,{error:'Payment verification is not configured'});
   try{
     const raw=await req.text();
