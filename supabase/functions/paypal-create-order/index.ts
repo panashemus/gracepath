@@ -11,6 +11,7 @@ const anon=Deno.env.get('SUPABASE_ANON_KEY')||'';
 Deno.serve(async(req:Request)=>{
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
  if(req.method!=='POST')return respond(405,{error:'Method not allowed'});
+ if(apiBase!=='https://api-m.sandbox.paypal.com')return respond(503,{error:'Sandbox checkout only; live PayPal is disabled'});
  if(req.headers.get('origin')!==allowedOrigin)return respond(403,{error:'Origin not allowed'});
  if(!clientId||!secret||!dbUrl||!anon)return respond(503,{error:'Secure checkout is being configured'});
  try{
