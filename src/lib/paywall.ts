@@ -91,6 +91,7 @@ export function getIsPremium(): boolean {
 }
 
 export function setIsPremium(_value: boolean): void {
+  void _value;
   // Legacy API compatibility: paid status cannot be changed by UI controls.
 }
 
