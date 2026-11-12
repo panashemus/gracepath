@@ -260,7 +260,7 @@ export default function UpgradeModal({ open, onClose, showToast, onPremiumActiva
             {!user && (
               <div className="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
                 <AlertCircle className="h-4 w-4 shrink-0" />
-                <span>Please sign in or create an account before subscribing.</span>
+                <span>Please sign in or create an account before purchasing access.</span>
               </div>
             )}
 
@@ -278,7 +278,7 @@ export default function UpgradeModal({ open, onClose, showToast, onPremiumActiva
                 )}
                 {checkoutState === 'creating'
                   ? 'Opening PayPal...'
-                  : `Continue to PayPal — $${tier.price}${tier.period}`}
+                  : `Continue to PayPal — ${tier.price} ${tier.period}`}
               </button>
               <div id="paypal-button-container" className="mt-3" />
             </div>
