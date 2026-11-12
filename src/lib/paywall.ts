@@ -1,6 +1,7 @@
 const COUNT_KEY = 'gracepath_prayers_generated';
-const PREMIUM_KEY = 'gracepath_is_premium';
-const TIER_KEY = 'gracepath_subscription_tier';
+// A browser must never be the authority for paid access. The AuthProvider refreshes this
+// in-memory tier exclusively from Supabase's server-protected profile fields.
+let confirmedTier: SubscriptionTier = 'free';
 
 export const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID ?? '';
 
@@ -93,29 +94,20 @@ export function incrementPrayerCount(): number {
 }
 
 export function getIsPremium(): boolean {
-  try {
-    return localStorage.getItem(PREMIUM_KEY) === 'true';
-  } catch {
-    return false;
-  }
+  return confirmedTier !== 'free';
 }
 
-export function setIsPremium(value: boolean): void {
-  localStorage.setItem(PREMIUM_KEY, String(value));
+export function setIsPremium(_value: boolean): void {
+  // Legacy API compatibility: paid status cannot be changed by UI controls.
 }
 
 export function getSubscriptionTier(): SubscriptionTier {
-  try {
-    const tier = localStorage.getItem(TIER_KEY) as SubscriptionTier | null;
-    return tier ?? 'free';
-  } catch {
-    return 'free';
-  }
+  return confirmedTier;
 }
 
 export function setSubscriptionTier(tier: SubscriptionTier): void {
-  localStorage.setItem(TIER_KEY, tier);
-  setIsPremium(tier !== 'free');
+  // Only call after the authenticated profile has been fetched from Supabase.
+  confirmedTier = tier;
 }
 
 export function canGenerateFreePrayer(): boolean {
