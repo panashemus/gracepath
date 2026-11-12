@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Check, Sparkles, Clock, CreditCard, ShieldCheck, Calendar, Infinity as InfinityIcon, Loader2, AlertCircle } from 'lucide-react';
-import { PRICING_TIERS, setSubscriptionTier, type PricingTier } from '../lib/paywall';
+import { PRICING_TIERS, setSubscriptionTier } from '../lib/paywall';
 import { loadPaypalSdk } from '../lib/paypalClient';
 import { useAuth } from '../lib/auth';
 import { supabase } from '../lib/supabase';
