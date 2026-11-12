@@ -185,12 +185,10 @@ export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: La
           setError('Verification timed out. If you completed payment, please contact support.');
           return;
         }
-        const { data } = await supabase
-          .from('profiles')
-          .select('is_subscribed, subscription_tier')
-          .eq('id', currentUser.id)
-          .maybeSingle();
-        if (data?.is_subscribed) {
+        const { data } = await supabase.functions.invoke('paypal-check-order', {
+          body: { orderId: orderID },
+        });
+        if (data?.verified) {
           if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
           await refresh();
           setVerify(false);
