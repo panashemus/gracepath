@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadProfile = useCallback(async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, username, subscription_tier')
+      .select('id, username, subscription_tier, is_subscribed, premium_expires_at')
       .eq('id', userId)
       .maybeSingle();
 
@@ -40,10 +40,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       id: data.id,
       username: data.username,
       subscription_tier: data.subscription_tier ?? 'free',
+      is_subscribed: Boolean(data.is_subscribed),
+      premium_expires_at: data.premium_expires_at ?? null,
     };
     setProfile(typedProfile);
 
-    const tier = (typedProfile.subscription_tier || 'free') as SubscriptionTier;
+    const expired = Boolean(typedProfile.premium_expires_at && Date.parse(typedProfile.premium_expires_at) <= Date.now());
+    const tier = ((typedProfile.is_subscribed && !expired) ? typedProfile.subscription_tier : 'free') as SubscriptionTier;
     setSubscriptionTier(tier);
   }, []);
 
@@ -73,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })();
       } else {
         setProfile(null);
+        setSubscriptionTier('free');
         setLoading(false);
       }
     });
@@ -107,21 +111,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (cleanUsername) {
         const { error: profileError } = await supabase
           .from('profiles')
-          .upsert({
-            id: data.user.id,
-            username: cleanUsername,
-            subscription_tier: 'free',
-          });
+          .update({ username: cleanUsername })
+          .eq('id', data.user.id);
         if (profileError && profileError.code === '23505') {
           return { error: 'That username is already taken. Please choose another.' };
         }
-      } else {
-        await supabase
-          .from('profiles')
-          .upsert({
-            id: data.user.id,
-            subscription_tier: 'free',
-          });
       }
     }
 
@@ -164,6 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setProfile(null);
+    setSubscriptionTier('free');
   }, []);
 
   return (
