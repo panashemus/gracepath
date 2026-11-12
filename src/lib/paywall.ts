@@ -30,9 +30,9 @@ export interface PricingTier {
 export const PRICING_TIERS: PricingTier[] = [
   {
     id: 'monthly',
-    label: 'Daily Walk VIP',
+    label: '30-Day Grace',
     price: 9.99,
-    period: '/month',
+    period: 'for 30 days',
     paypalUrl: PAYPAL_MONTHLY_URL,
     features: [
       'Unlimited personalized prayers',
@@ -45,15 +45,15 @@ export const PRICING_TIERS: PricingTier[] = [
   },
   {
     id: 'annual',
-    label: 'Annual Grace',
+    label: 'Year of Grace',
     price: 59.99,
-    period: '/year',
+    period: 'for 365 days',
     badge: 'SAVE 50% — BEST VALUE',
     highlight: true,
     paypalUrl: PAYPAL_ANNUAL_URL,
     features: [
-      'Everything in Daily Walk VIP',
-      'Save 50% vs. monthly billing',
+      'Everything in 30-Day Grace',
+      'Save 50% compared with twelve 30-day passes',
       'Voice reflections (Warm Male & Gentle Female)',
       'Prayer journal and answered prayer tracking',
       'Priority prayer generation',
@@ -68,7 +68,7 @@ export const PRICING_TIERS: PricingTier[] = [
     badge: 'PAY ONCE, OWN FOREVER',
     paypalUrl: PAYPAL_LIFETIME_URL,
     features: [
-      'Everything in Annual Grace',
+      'Everything in Year of Grace',
       'One-time payment — no subscription',
       'Lifetime access to all future features',
       'Premium ambient soundscapes',
