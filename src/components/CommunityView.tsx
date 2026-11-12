@@ -347,7 +347,7 @@ export default function CommunityView({ onShowUpgrade, onShowAuth }: CommunityVi
 }
 
 function PostCard({
-  post, onPray, onShowAuth, index,
+  post, onPray, index,
 }: {
   post: CommunityPost;
   onPray: () => void;
