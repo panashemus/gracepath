@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  BookOpen, Lock, Crown, Loader2, Copy, Check, ChevronLeft, ChevronRight,
+  BookOpen, Lock, Crown, Copy, Check, ChevronLeft, ChevronRight,
   Type, Bookmark,
 } from 'lucide-react';
 import { hasProAccess } from '../lib/paywall';
@@ -109,11 +109,6 @@ export default function BibleReader({ onShowUpgrade }: BibleReaderProps) {
   useEffect(() => {
     if (canAccess) fetchChapter();
   }, [canAccess, fetchChapter]);
-
-  const goToChapter = (newBook: string, newChapter: number) => {
-    setBook(newBook);
-    setChapter(newChapter);
-  };
 
   const goPrev = () => {
     if (chapter > 1) {
