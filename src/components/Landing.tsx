@@ -216,7 +216,7 @@ export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: La
         <div className="mx-auto max-w-4xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-champagne-300 bg-champagne-50 px-4 py-1.5 text-xs font-medium text-champagne-700 animate-fade-in">
             <Sparkles className="h-3.5 w-3.5" />
-            AI-Powered Prayer Companion
+            Personalized Prayer Companion
           </div>
 
           <h1 className="text-balance text-4xl font-semibold leading-[1.1] text-ink-900 sm:text-5xl md:text-6xl animate-fade-up">
