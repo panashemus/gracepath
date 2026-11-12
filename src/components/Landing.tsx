@@ -4,7 +4,8 @@ import {
   Quote, Check, Star, Users, Clock, ShieldCheck, Download,
   Play, Pause, Loader2, Calendar, Infinity as InfinityIcon, AlertCircle,
 } from 'lucide-react';
-import { PRICING_TIERS, PAYPAL_CLIENT_ID } from '../lib/paywall';
+import { PRICING_TIERS } from '../lib/paywall';
+import { loadPaypalSdk } from '../lib/paypalClient';
 import { useAuth } from '../lib/auth';
 import { supabase } from '../lib/supabase';
 import { LogoMark } from './Logo';
@@ -47,7 +48,7 @@ const TIER_ICONS: Record<string, typeof Clock> = {
 };
 
 export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: LandingProps) {
-  const { user, refreshProfile } = useAuth();
+  const { user, session, refreshProfile } = useAuth();
   const pricingRef = useRef<HTMLElement>(null);
   const [samplePlaying, setSamplePlaying] = useState(false);
   const [sampleLoading, setSampleLoading] = useState(false);
@@ -55,18 +56,7 @@ export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: La
   const [checkoutTier, setCheckoutTier] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
-  const paypalLoadedRef = useRef(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Load PayPal SDK once on mount
-  useEffect(() => {
-    if (!PAYPAL_CLIENT_ID || paypalLoadedRef.current) return;
-    paypalLoadedRef.current = true;
-    const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=USD&intent=capture`;
-    script.async = true;
-    document.head.appendChild(script);
-  }, []);
 
   useEffect(() => {
     return () => {
@@ -149,14 +139,16 @@ export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: La
     setError(null);
 
     try {
+      const paypal = await loadPaypalSdk();
+      if (!session?.access_token) throw new Error('Please sign in before checkout.');
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const response = await fetch(`${supabaseUrl}/functions/v1/paypal-create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ tier: tierId, userId: currentUser.id }),
+        body: JSON.stringify({ tier: tierId }),
       });
 
       if (!response.ok) {
@@ -165,10 +157,6 @@ export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: La
       }
 
       const { orderID } = await response.json();
-
-      // @ts-expect-error - PayPal SDK global
-      const paypal = window.paypal;
-      if (!paypal) throw new Error('PayPal SDK not loaded');
 
       const containerId = `paypal-landing-${tierId}`;
       const container = document.getElementById(containerId);
