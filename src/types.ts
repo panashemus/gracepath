@@ -55,6 +55,8 @@ export interface UserProfile {
   id: string;
   username: string | null;
   subscription_tier: string;
+  is_subscribed: boolean;
+  premium_expires_at: string | null;
 }
 
 export interface CommunityPost {
