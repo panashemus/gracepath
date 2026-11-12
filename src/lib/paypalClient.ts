@@ -12,6 +12,7 @@ export function loadPaypalSdk(): Promise<PayPalSDK> {
  if(window.paypal)return Promise.resolve(window.paypal);
  if(pending)return pending;
  const clientId=import.meta.env.VITE_PAYPAL_CLIENT_ID;
+ if(import.meta.env.VITE_PAYMENT_MODE!=='sandbox') return Promise.reject(new Error('Payments are disabled until sandbox configuration is complete.'));
  if(!clientId) return Promise.reject(new Error('Checkout is temporarily unavailable. PayPal configuration is incomplete.'));
  pending=new Promise<PayPalSDK>((resolve,reject)=>{
   const existing=document.querySelector<HTMLScriptElement>('script[data-gracepath-paypal]');
