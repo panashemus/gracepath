@@ -259,7 +259,7 @@ export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: La
               </button>
               <div className="flex-1 text-left">
                 <p className="text-sm font-semibold text-ink-900">Listen to a Sample Reflection</p>
-                <p className="text-xs text-ink-400">Hear the voice quality before you subscribe</p>
+                <p className="text-xs text-ink-400">Hear a sample reflection before purchasing access</p>
               </div>
               <Headphones className="h-5 w-5 text-champagne-500" />
             </div>
@@ -445,7 +445,7 @@ export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: La
                   )}
                   <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-ink-50 px-3 py-1 text-xs font-medium text-ink-600">
                     <Icon className="h-3.5 w-3.5" />
-                    {tier.id === 'monthly' ? 'Monthly' : tier.id === 'annual' ? 'Annual' : 'Lifetime'}
+                    {tier.id === 'monthly' ? '30 days' : tier.id === 'annual' ? '365 days' : 'Lifetime'}
                   </div>
                   <h3 className="mt-3 text-2xl font-semibold text-ink-900">{tier.label}</h3>
                   <div className="mt-4 flex items-baseline gap-1">
