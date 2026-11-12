@@ -233,8 +233,8 @@ export default function UpgradeModal({ open, onClose, showToast, onPremiumActiva
                           )}
                         </div>
                         <p className="mt-1 text-xs text-ink-400">
-                          {t.id === 'monthly' && 'Unlimited prayers, every day'}
-                          {t.id === 'annual' && 'Best value — save 50% vs monthly'}
+                          {t.id === 'monthly' && '30 days of Premium access — no auto-renewal'}
+                          {t.id === 'annual' && '365 days of Premium access — no auto-renewal'}
                           {t.id === 'lifetime' && 'Pay once, pray forever'}
                         </p>
                       </div>
@@ -287,8 +287,8 @@ export default function UpgradeModal({ open, onClose, showToast, onPremiumActiva
             <div className="mt-4 space-y-2">
               {[
                 'Instant Access to Daily Scripture & Audio',
-                'Secure 256-Bit Encrypted PayPal Checkout',
-                '7-day money-back guarantee',
+                'Secure PayPal checkout',
+                'One-time purchase — no automatic renewal',
               ].map((badge) => (
                 <div key={badge} className="flex items-center gap-2 text-xs text-ink-500">
                   <Check className="h-3.5 w-3.5 shrink-0 text-sage-500" />
