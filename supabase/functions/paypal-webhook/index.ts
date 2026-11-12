@@ -61,11 +61,12 @@ Deno.serve(async(req:Request)=>{
     });
     if(!orderResp.ok)return json(502,{error:'Could not confirm PayPal order'});
     const order=await orderResp.json();
-    const unit=order?.purchase_units?.[0];
+    if(order?.status!=='COMPLETED'||order?.purchase_units?.length!==1)return json(400,{error:'Order is not a single completed purchase'});
+    const unit=order.purchase_units[0];
     const confirmedCapture=unit?.payments?.captures?.find((x:{id:string,status:string})=>x.id===captureId&&x.status==='COMPLETED');
     if(!confirmedCapture||!unit?.custom_id)return json(400,{error:'Order does not match completed capture'});
     const amount=confirmedCapture?.amount;
-    if(amount?.currency_code!=='USD')return json(400,{error:'Unexpected currency'});
+    if(amount?.currency_code!=='USD'||capture?.amount?.currency_code!=='USD'||Number(capture?.amount?.value)!==Number(amount?.value))return json(400,{error:'Capture amount mismatch'});
     const entry=prices[String(Number(amount?.value).toFixed(2))];
     if(!entry||Number(amount?.value)!==Number(entry.usd))return json(400,{error:'Unexpected payment amount'});
     const metadata=String(unit.custom_id);
@@ -74,16 +75,30 @@ Deno.serve(async(req:Request)=>{
     const userId=parts[0];
     if(!/^[0-9a-f-]{36}$/i.test(userId))return json(400,{error:'Invalid user identifier'});
     const sb=createClient(url,serviceKey);
+    // Receipts are immutable: never overwrite an earlier verified PayPal capture.
+    // A redelivered event must refer to the exact same order, capture, owner and amount.
+    const {error:insertError}=await sb.from('paypal_payment_receipts')
+      .insert({order_id:orderId,capture_id:captureId,user_id:userId,tier:entry.tier,amount_usd:Number(entry.usd)});
+    if(insertError && insertError.code!=='23505')return json(500,{error:'Could not record verified payment'});
     const {data:receipt,error:receiptError}=await sb.from('paypal_payment_receipts')
-      .upsert({order_id:orderId,capture_id:captureId,user_id:userId,tier:entry.tier,amount_usd:Number(entry.usd)},{onConflict:'order_id'})
-      .select('order_id,capture_id,user_id,tier').single();
-    if(receiptError||receipt?.capture_id!==captureId||receipt?.user_id!==userId||receipt?.tier!==entry.tier){
-      return json(500,{error:'Could not record verified payment'});
+      .select('order_id,capture_id,user_id,tier,amount_usd,verified_at')
+      .eq('order_id',orderId).maybeSingle();
+    if(receiptError||!receipt||receipt.capture_id!==captureId||receipt.user_id!==userId||receipt.tier!==entry.tier||Number(receipt.amount_usd)!==Number(entry.usd)){
+      return json(409,{error:'Payment receipt conflict'});
     }
     // One-time payments grant time-limited access; not PayPal recurring subscriptions.
-    const {data:storedReceipt}=await sb.from('paypal_payment_receipts').select('verified_at').eq('order_id',orderId).single();
-    const verifiedAt=storedReceipt?.verified_at ? Date.parse(storedReceipt.verified_at) : Date.now();
+    const verifiedAt=Date.parse(receipt.verified_at);
+    if(!Number.isFinite(verifiedAt))return json(500,{error:'Invalid receipt timestamp'});
     const expires=entry.tier==='lifetime'?null:new Date(verifiedAt+(entry.tier==='monthly'?30:365)*86400000).toISOString();
+    // Replayed historical events must not re-enable expired access or downgrade newer entitlements.
+    if(expires && Date.parse(expires)<=Date.now())return json(200,{received:true,ignored:true});
+    const {data:current,error:currentError}=await sb.from('profiles')
+      .select('subscription_tier,is_subscribed,premium_expires_at').eq('id',userId).maybeSingle();
+    if(currentError||!current)return json(500,{error:'Customer profile unavailable'});
+    const currentExpiry=current.premium_expires_at ? Date.parse(current.premium_expires_at) : 0;
+    if(current.is_subscribed && (current.subscription_tier==='lifetime'||(expires && currentExpiry>=Date.parse(expires)))){
+      return json(200,{received:true,unchanged:true});
+    }
     const {error:updateError}=await sb.from('profiles')
       .update({subscription_tier:entry.tier,is_subscribed:true,premium_expires_at:expires})
       .eq('id',userId);
