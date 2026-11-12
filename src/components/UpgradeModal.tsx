@@ -42,7 +42,7 @@ export default function UpgradeModal({ open, onClose, showToast, onPremiumActiva
     };
   }, [open]);
 
-  const pollSubscription = useCallback(async (userId: string) => {
+  const pollSubscription = useCallback(async (orderId: string) => {
     if (pollRef.current) clearInterval(pollRef.current);
 
     let attempts = 0;
@@ -58,13 +58,11 @@ export default function UpgradeModal({ open, onClose, showToast, onPremiumActiva
         return;
       }
 
-      const { data } = await supabase
-        .from('profiles')
-        .select('is_subscribed, subscription_tier')
-        .eq('id', userId)
-        .maybeSingle();
+      const { data } = await supabase.functions.invoke('paypal-check-order', {
+        body: { orderId },
+      });
 
-      if (data?.is_subscribed) {
+      if (data?.verified) {
         if (pollRef.current) {
           clearInterval(pollRef.current);
           pollRef.current = null;
@@ -133,7 +131,7 @@ export default function UpgradeModal({ open, onClose, showToast, onPremiumActiva
 
       // Transition to verifying state
       setCheckoutState('verifying');
-      pollSubscription(user.id);
+      pollSubscription(orderID);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Checkout failed';
       if (message === 'Payment cancelled') {
