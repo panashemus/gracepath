@@ -10,11 +10,11 @@ import UpgradeModal from './components/UpgradeModal';
 import AuthModal from './components/AuthModal';
 import { Toast, useToast } from './components/Toast';
 import { AuthProvider, useAuth } from './lib/auth';
-import { incrementPrayerCount, getIsPremium } from './lib/paywall';
+import { incrementPrayerCount } from './lib/paywall';
 import type { AppView, PrayerResult, VoiceId } from './types';
 
 function AppContent() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [view, setView] = useState<AppView>('landing');
   const [intakeOpen, setIntakeOpen] = useState(false);
   const [prayer, setPrayer] = useState<PrayerResult | null>(null);
@@ -22,7 +22,7 @@ function AppContent() {
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
   const [authPrompt, setAuthPrompt] = useState<{ title?: string; subtitle?: string } | undefined>(undefined);
-  const [isPremium, setIsPremiumState] = useState(getIsPremium());
+  const isPremium = Boolean(user && profile?.is_subscribed && profile.subscription_tier !== 'free' && (!profile.premium_expires_at || Date.parse(profile.premium_expires_at) > Date.now()));
   const [voice, setVoice] = useState<VoiceId>('onyx');
   const { toast, showToast } = useToast();
 
@@ -49,7 +49,7 @@ function AppContent() {
   };
 
   const handlePremiumActivated = () => {
-    setIsPremiumState(true);
+    // Premium status comes from the verified server-side profile.
   };
 
   const showAuth = (mode: 'signin' | 'signup', prompt?: { title?: string; subtitle?: string }) => {
