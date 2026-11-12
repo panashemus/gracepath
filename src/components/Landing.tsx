@@ -18,22 +18,22 @@ interface LandingProps {
 
 const TESTIMONIALS = [
   {
-    name: 'Sarah M.',
-    role: 'Mother of three, Texas',
-    text: 'I was walking through a season of deep anxiety and GracePath gave me prayers that felt like they were written just for me. The scripture selections were exactly what I needed each morning.',
-    rating: 5,
+    name: 'Finding peace',
+    role: 'Illustrative scenario',
+    text: 'Take a quiet moment to write about what is weighing on your heart, then generate a personal prayer and a reflection prompt to revisit later.',
+    rating: 0,
   },
   {
-    name: 'David K.',
-    role: 'Entrepreneur, California',
-    text: 'The financial breakthrough prayers were remarkably specific and encouraging. I saved them to my journal and revisited them daily. It became my morning ritual before checking email.',
-    rating: 5,
+    name: 'Starting the morning',
+    role: 'Illustrative scenario',
+    text: 'Choose an uplifting tone, explore a relevant scripture passage, and begin your day with a moment of focused encouragement.',
+    rating: 0,
   },
   {
-    name: 'Grace L.',
-    role: 'College Student, Georgia',
-    text: 'Finding purpose felt impossible until I used GracePath. The reflection prompts helped me process what God was saying. The audio player with the worship pad is so peaceful.',
-    rating: 5,
+    name: 'Tracking the journey',
+    role: 'Illustrative scenario',
+    text: 'Save meaningful prayers in your journal so you can look back on your requests and reflect on how your circumstances change.',
+    rating: 0,
   },
 ];
 
@@ -258,7 +258,7 @@ export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: La
                 )}
               </button>
               <div className="flex-1 text-left">
-                <p className="text-sm font-semibold text-ink-900">Listen to a Sample Daily Reflection</p>
+                <p className="text-sm font-semibold text-ink-900">Listen to a Sample Reflection</p>
                 <p className="text-xs text-ink-400">Hear the voice quality before you subscribe</p>
               </div>
               <Headphones className="h-5 w-5 text-champagne-500" />
@@ -268,11 +268,11 @@ export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: La
           <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-ink-400 animate-fade-in" style={{ animationDelay: '0.4s' }}>
             <span className="flex items-center gap-1.5">
               <Users className="h-4 w-4 text-champagne-500" />
-              Over 10,000+ daily prayers delivered
+              Personalized daily prayer reflections
             </span>
             <span className="flex items-center gap-1.5">
               <Star className="h-4 w-4 text-champagne-500 fill-champagne-500" />
-              4.9/5 from 2,300+ members
+              Prayer journal and guided reflections
             </span>
             <span className="flex items-center gap-1.5">
               <ShieldCheck className="h-4 w-4 text-champagne-500" />
@@ -386,8 +386,8 @@ export default function Landing({ onStartPrayer, onNavigate, onShowUpgrade }: La
       <section className="px-4 py-20 sm:px-6 sm:py-24">
         <div className="mx-auto max-w-5xl">
           <div className="mb-14 text-center">
-            <h2 className="text-3xl font-semibold text-ink-900 sm:text-4xl">Loved by Thousands</h2>
-            <p className="mt-3 text-ink-500">Real stories from people whose prayer life has been transformed</p>
+            <h2 className="text-3xl font-semibold text-ink-900 sm:text-4xl">Made for Your Daily Walk</h2>
+            <p className="mt-3 text-ink-500">Illustrative ways to use GracePath, not customer testimonials</p>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
             {TESTIMONIALS.map((t, i) => (
