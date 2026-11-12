@@ -21,7 +21,11 @@ Deno.serve(async(req:Request)=>{
   const admin=createClient(url,service);
   const {data:receipt,error:dbError}=await admin.from('paypal_payment_receipts').select('order_id,tier,verified_at').eq('order_id',orderId).eq('user_id',data.user.id).maybeSingle();
   if(dbError)return reply(503,{error:'Could not verify payment'});
-  return reply(200,{verified:!!receipt,tier:receipt?.tier??null});
+  if(!receipt)return reply(200,{verified:false,tier:null});
+  const {data:profile,error:profileError}=await admin.from('profiles').select('subscription_tier,is_subscribed,premium_expires_at').eq('id',data.user.id).maybeSingle();
+  if(profileError)return reply(503,{error:'Could not confirm access'});
+  const active=Boolean(profile?.is_subscribed && profile.subscription_tier===receipt.tier && (!profile.premium_expires_at || Date.parse(profile.premium_expires_at)>Date.now()));
+  return reply(200,{verified:active,tier:active?receipt.tier:null});
  }catch(err){
   console.error('Payment status error:',err instanceof Error?err.message:'unknown');
   return reply(500,{error:'Could not verify payment'});
